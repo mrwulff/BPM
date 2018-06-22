@@ -4,14 +4,67 @@ import json
 from PIL import Image, ImageTk
 
 
-dirpath ="E:/Steam/steamapps/common/Beat Saber/CustomSongs"
+dirpath ="E:/steamapps/common/Beat Saber/CustomSongs"
 
 
 listPlist=0
 
 value=0
+pvalue=0
 
 txtColor='white'
+plistselect2=0
+
+def savej():
+    global listPlist
+    print listPlist
+    print 'fuckoff'
+    aa= listPlist.get(0, END)
+    song={}
+    print type(song)
+    print aa
+    
+    
+
+    d = {"playlistTitle":"KEVIN TEST 111"}
+    #d.update={"playlistAuthor":"KEVIN"}
+    d['playlistAutor']='KEVIN'
+    #d.update={"songs":'TEST'}
+    
+
+
+    
+    with open('data.txt', 'w') as outfile:
+        json.dump(d, outfile)
+
+def save():
+    global dirpath
+    dd=dirpath+'/'+'playlist.json'
+    print dd
+    w=open(dd,'w')
+    
+    
+    aa= listPlist.get(0, END)
+    a1='{\n  "playlistTitle": "Stars Picks",\n'
+    a2='  "playlistAuthor": "StarGazer1258",\n'
+    a3='  "songs": [\n'
+    w.write(a1+a2+a3)
+    
+    a=[0]*len(aa)
+    for b in range(len(aa)):
+        a[b]=aa[b]
+        t='    {"id": 221, "songName": "'+a[b]+'"},\n'
+        w.write(t)
+    w.write('   ]\n}')
+    
+       
+    
+    
+    
+
+
+
+    
 
 def add():
     global value
@@ -20,9 +73,64 @@ def add():
     print value
     listPlist.insert(END, value)
 def remove():
-    print 'remove'
+    global listPlist
+    listPlist.delete(0, END)
 def addall():
     print 'addall'
+def move_down():
+
+
+
+
+
+    
+    global plistselect2
+    global listPlist
+    global aaa
+    pos= listPlist.curselection()
+
+    print listPlist.size()
+    
+    pos=pos[0]
+    print pos
+
+
+    if pos >= listPlist.size()-1:
+        print "End of List"
+        return
+
+    text = listPlist.get(pos)
+    listPlist.delete(pos)
+    listPlist.insert(pos+1, text)
+    listPlist.select_set(pos+1)
+
+    print listPlist
+    
+
+def move_up():
+
+
+
+
+    
+    global plistselect2
+    global listPlist
+    global aaa
+    pos= listPlist.curselection()
+    
+    pos=pos[0]
+
+
+    if pos == 0:
+        return
+
+    text = listPlist.get(pos)
+    listPlist.delete(pos)
+    listPlist.insert(pos-1, text)
+    listPlist.select_set(pos-1)
+
+    print listPlist
+    
 
 def OnDouble(event):
     global value
@@ -100,13 +208,15 @@ def OnDouble(event):
 
     label = Label(image=photo)
     label.image=photo
-    label.grid(row=3,column=2,rowspan=9,sticky="N"+"W")
-    Label(justify='left',anchor='w',bg=txtColor,text=ddd,font=(12)).grid(row=6,column=1,ipadx=100,sticky='W'+'E'+'S'+'N')
+    label.grid(row=3,column=2,rowspan=9,columnspan=4,sticky="N"+"W")
+    Label(justify='left',anchor='w',bg=txtColor,text=ddd,font=(12)).grid(row=6,column=1,columnspan=1,ipadx=100,sticky='W'+'E'+'S'+'N')
 
 
 
 def main():
     global listPlist
+    global plistselect2
+    global aaa
     footer=10
     #rightedge=4
 
@@ -121,7 +231,7 @@ def main():
     menubar = Menu(root)
     filemenu = Menu(menubar, tearoff=0)
     filemenu.add_command(label="Open", command=add)
-    filemenu.add_command(label="Save", command=add)
+    filemenu.add_command(label="Save", command=save)
     filemenu.add_separator()
     filemenu.add_command(label="Exit", command=root.quit)
     menubar.add_cascade(label="File", menu=filemenu)
@@ -134,7 +244,7 @@ def main():
 
 
     Label(text="All Songs",font=(20)).grid(row=0,column=0)
-    Label(text="Playlist",font=(20)).grid(row=0,column=2)
+    Label(text="Playlist",font=(20)).grid(row=0,column=2,columnspan=2)
 
 
 
@@ -150,7 +260,9 @@ def main():
 
 
     listPlist = Listbox(root, width=30, height=20, font=("Helvetica", 12))
-    listPlist.grid(row=1,column=2,rowspan=1)
+    listPlist.grid(row=1,column=2,columnspan=4)
+    listPlist.bind("<Double-Button-1>", OnDouble)
+
 
 
     listSongs = Listbox(root, width=30, height=20, font=("Helvetica", 12))
@@ -166,18 +278,36 @@ def main():
     w = Canvas(root, width=400, height=380,bg="white")
     #w.create_rectangle(50, 25, 150, 75, fill="white")
     w.create_text(10,20,anchor='nw',justify='left',fill="black",font="Helvetica 12 ", width=400,text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce quis arcu volutpat arcu malesuada imperdiet quis id sem. Nunc ornare sapien in ante bibendum, quis blandit ante semper. Nullam ante arcu, semper nec suscipit vitae, vehicula sit amet felis. Nulla facilisi. Aenean interdum vel ante sed facilisis. Sed interdum pretium gravida. Suspendisse suscipit id turpis quis elementum. Nunc dapibus in justo a gravida. Aliquam ullamcorper nibh non leo posu.")
-    w.grid(row=1,column=1,rowspan=1)
+    w.grid(row=1,column=1,columnspan=1)
 
 
 
 
 
     addsongbutton = Button(root, text="Add to Playlist", command=add).grid(row=2,column=0)
+
+
+    
     addallsongbutton = Button(root, text="Add All to Playlist", command=addall).grid(row=8,column=0)
 
 
-    removesongbutton = Button(root, text="RemoveSelected", command=remove).grid(row=2,column=2,)
-    removesongbutton2 = Button(root, text="Remove All", command=remove).grid(row=8,column=2)
+    removesongbutton = Button(root, text="RemoveSelected", command=lambda listPlist=listPlist: listPlist.delete(ANCHOR)).grid(row=2,column=2,)
+
+    #b = Button(master, text="Delete",command=lambda lb=lb: lb.delete(ANCHOR))
+    print plistselect2
+    print 
+    plistselect2=listPlist.get(ANCHOR)
+
+
+    
+    moveup = Button(root, text="Move up", command=move_up).grid(row=2,column=4,)
+
+    
+    movedown = Button(root, text="Move down", command=move_down).grid(row=2,column=5,)
+    removesongbutton2 = Button(root, text="Remove All", command=remove).grid(row=2,column=3)
+
+    
+
 
     ratebutton = Button(root, text="Rate", command=remove).grid(row=2,column=1)
 
