@@ -4,16 +4,18 @@ import json
 from PIL import Image, ImageTk
 
 
-dirpath ="E:/steamapps/common/Beat Saber/CustomSongs"
+dirpath ="E:/steam/Beat Saber/CustomSongs"
 
 
 listPlist=0
-
+listSongs=0
 value=0
 pvalue=0
 
 txtColor='white'
 plistselect2=0
+mlist=[]
+dirs=[]
 
 def savej():
     global listPlist
@@ -131,7 +133,52 @@ def move_up():
 
     print listPlist
     
+def firstload():
+    global mlist
+    #print mlist
 
+    sl=dirs
+    #print sl
+    for c in range(len(sl)):
+        
+        #print sl[c]
+        value=sl[c]
+        if value!='.cache' or  value!='playlist.json':
+            
+            try:
+                a=dirpath+"/"+value+"/info.json"
+                #print a
+                input_file  = file(a, "r")
+                j = json.loads(input_file.read())
+                #print j["songSubName"]
+                #print j
+                environmentName=j['environmentName']
+                difficultyLevels=j['difficultyLevels']
+                diff=difficultyLevels
+                ddd=''
+                    
+                '''
+                for aa in difficultyLevels:
+                    print aa
+                    print type(aa)
+                    for key, value in aa.iteritems() :
+                        print key,value
+                '''
+                authorName=j['authorName']
+                songsubname=j['songSubName']
+                bpm=j['beatsPerMinute']
+                songName=j['songName']
+                thumb=j['coverImagePath']
+                songdetails=[value,songName,songsubname,authorName,diff,bpm,thumb,environmentName]
+                mlist.append(songdetails)
+                #print songdetails
+
+            except:
+                print value
+#                 songdetails=[0,0,0,0,0,0,0,0]
+#            """
+#    return mlist
+    
 def OnDouble(event):
     global value
     widget = event.widget
@@ -198,10 +245,10 @@ def OnDouble(event):
 
 
     
-    print diff
+    #print diff
     for bb in difficultyLevels:
-        print bb
-        print type(bb)
+        #print bb
+        #print type(bb)
         ddd= bb['difficulty']+' '+ddd
         
 
@@ -215,10 +262,13 @@ def OnDouble(event):
 
 def main():
     global listPlist
+    global listSongs
     global plistselect2
     global aaa
+    global mlist
     footer=10
     #rightedge=4
+    global dirs
 
 
         
@@ -317,12 +367,32 @@ def main():
 
 
 
-
-
-
-
     for x in os.listdir(dirpath):
-        listSongs.insert(END, str(x))
+        dirs.append(x)
+    #print dirs
+
+    firstload()
+    
+    #print mlist
+    #print mlist[1][1]
+    print mlist[1]
+    print len(mlist)
+    #for xx in (mlist):
+       # print mlist
+    for x in range(len(mlist)):
+        print mlist[x][1]
+        listSongs.insert(END, mlist[x][1])
+
+
+##############songdetails=[value,songName,songsubname,authorName,diff,bpm,thumb,environmentName]
+        
+    #    print mlist[x][1]
+        #listSongs.insert(END,mlist[xx][1])
+
+    #    listSongs.insert(END,mlist[x][1])
+    #for x in os.listdir(dirpath):
+    #    listSongs.insert(END, str(x))
+    
     #widget=event.widget
     #selection=widget.curselection()
 
