@@ -25,30 +25,34 @@ short=20
 #column=[]
 
 
-upordown=0
+upordown=1
+debug=5
+lastselected=0
+
 
 def rate(rating):
 
     selection=listSongs.curselection()
-    print selection,rating
-    #value= mlist[selection[0]][0]
-    print type(rating)
+    if debug>0:
+        print selection,rating ,' Song selection and rating'
     rating=str(rating)
     mlist[selection[0]][10]=rating
-    print mlist[selection[0]]
+    mlist[selection[0]][17]=1
+    export_extra_data()
     savesongs()
     init()
 
+
     
-    #print value
+'''
+def savejk():
     
 
     
-
-def savej():
     global listPlist
-    print listPlist
-    print 'fuckoff'
+
+    if debug>1:
+        print 'savej'
     aa= listPlist.get(0, END)
     song={}
     print type(song)
@@ -66,11 +70,12 @@ def savej():
     
     with open('data.txt', 'w') as outfile:
         json.dump(d, outfile)
+'''
+
 
 def save():
     global dirpath
     dd=dirpath+'/'+'playlist.json'
-    print dd
     w=open(dd,'w')
     
     
@@ -93,19 +98,18 @@ def save():
     
 
 def init():
+    Label(text="All Songs "+str(len(mlist)),font=(20)).grid(row=0,column=0,columnspan=7)
+
+    print 'running init with',len(mlist),' songs'
     listSongs.delete(0,'end')
+    print 'running ini2 with',len(mlist),' songs'
     
-    
-    #print mlist
-    #print mlist[1][1]
-    #print mlist[1]
-    #print len(mlist)
-    #for xx in (mlist):
-       # print mlist
+    odd=0
+    tag="odd"
+
     for x in range(len(mlist)):
-        #print mlist[x][1]
-        #listSongs.insert(END, mlist[x][1])
-        #print len(mlist[x])
+        odd=odd+1
+
         ea=''
         m=''
         h=''
@@ -125,25 +129,41 @@ def init():
             p=emoji.emojize(':heavy_check_mark:')
 
         rate=''
-        #print ((mlist[x][10])),'junk'
         if mlist[x][10]=='':
             (mlist[x][10])=0
         for cz in range(int(mlist[x][10])):
-            #print 'stars'
             rate=rate+emoji.emojize(':star:',use_aliases=True)
         
-        listSongs.insert(END,emoji.emojize(':star:',use_aliases=True),mlist[x][14],mlist[x][13],mlist[x][12],ea,m,h,ex,p,mlist[x][9],rate)
+        listSongs.insert(END,emoji.emojize(':star:',use_aliases=True),mlist[x][14],mlist[x][13],mlist[x][12],ea,m,h,ex,p,mlist[x][9],rate,)
+        
+        tag = "even" if tag == "odd" else "odd"
+        '''
+        if odd%2==0:
+            listSongs.configure(itembackground="#e0e0e0")
+            print odd
+        if odd%2==1:
+            listSongs.configure(itembackground="white")
+            print odd
+        '''
+            
+        
 
 
 
     
 
 def add():
+    cc=listSongs.curselection()
+    print cc
     global value
     global listPlist
 
     print value
-    listPlist.insert(END, value)
+    for a in range(len(cc)):
+        
+        listPlist.insert(END, mlist[cc[a]][1])
+    listSongs.selection_clear(0, END)
+
 def remove():
     global listPlist
     listPlist.delete(0, END)
@@ -161,10 +181,8 @@ def move_down():
     global aaa
     pos= listPlist.curselection()
 
-    print listPlist.size()
     
     pos=pos[0]
-    print pos
 
 
     if pos >= listPlist.size()-1:
@@ -176,7 +194,6 @@ def move_down():
     listPlist.insert(pos+1, text)
     listPlist.select_set(pos+1)
 
-    print listPlist
     
 
 def move_up():
@@ -201,134 +218,12 @@ def move_up():
     listPlist.insert(pos-1, text)
     listPlist.select_set(pos-1)
 
-    print listPlist
-    
-def firstload():
+def loadinfojson(input_file,value):
+    global listsongs
     global mlist
-    #print mlist
-    
-    for x in os.listdir(dirpath):
-        dirs.append(x)
-    sl=dirs
-    print sl
-    #print sl
-    for c in range(len(sl)):
-        
-        value=sl[c]
-        if value!='.cache':
-            if value!='playlist.json':
-        
-                diffE=False
-                diffN=False
-                diffH=False
-                diffX=False
-                diffP=False
-                
-                if 1==1:
-                    a=dirpath+"/"+value+"/info.json"
-                    print a
-                    input_file  = file(a, "r")
-                    j = json.loads(input_file.read())
-                    #print j["songSubName"]
-                    #print j
-                    environmentName=j['environmentName']
-                    difficultyLevels=j['difficultyLevels']
-                    diff=difficultyLevels
-                    ddd=''
-                        
-                    '''
-                    for aa in range(len(difficultyLevels)):
-                        #print aa
-                        #print type(aa)
-                        for key, value2 in aa.iteritems() :
-                            print diff
-                            print key,value2,'fuckoff22'
-                    '''
-                    #print diff
-                    for i in range(len(diff)):
-                        #print diff[i]
-                        test2=diff[i]
-                        di= test2['difficulty']
-                        #print di
-                        if di=='Normal':
-                            diffN=True
-                        if di=='Easy':
-                            diffE=True
-                        if di=='Hard':
-                        
-
-                            diffH=True
-                        if di=="Expert":
-                            diffX=True
-                        if di=="ExpertPlus":
-                            diffP=True
-                            #print test2
-                            #teest=raw_input('fuck')
-                        
-                        
-                            #print diffE,diffN,diffH,diffX,diffP
-
-                    
-                    
-                    authorName=j['authorName']
-                    authorNameS=authorName
-                    if len(authorName)>short:
-                        authorNameS=authorNameS[:short]+'...'
-                        #print authorNameS
-                    
-                    
-                    songsubname=j['songSubName']
-
-                    songsubnameS=songsubname
-                    if len(songsubname)>short:
-                        songsubnameS=songsubnameS[:short]+'...'
-                        #print songsubnameS
-
-                    songName=j['songName']
-                    songNameS=songName
-                    if len(songNameS)>short:
-                        songNameS=songNameS[:short]+'...'
-                       # print songNameS
-
-
-
-
-
-
-                    
-                    bpm=j['beatsPerMinute']
-                    #bpm,junk2=bpm(split,'.')
-                    
-                    try:
-                        bpm=str(bpm)
-                        bpm,junk=split(bpm,'.')
-                    except:
-                        ''
-                    
-                    thumb=j['coverImagePath']
-                    ###extra 0 for future content
-                    songdetails=[value,songName,songsubname,authorName,diffE,diffN,diffH,diffX,diffP,str(bpm),'',environmentName,authorNameS,songsubnameS,songNameS,thumb,'',0,0,0,0,0,]
-                    mlist.append(songdetails)
-                    #print songdetails
-
-            #except:
-            #    print value
-#                 songdetails=[0,0,0,0,0,0,0,0]
-#            """
-#    return mlist
-    
-def OnDouble(event):
-    global value
-    widget = event.widget
-    selection=widget.curselection()
-    value= mlist[selection[0]][0]
-    value55 = widget.get(selection[0])
-    print value55
-    #print "selection:", selection, ": '%s'" % value
-    a=dirpath+"/"+value+"/info.json"
-    #print a
-    input_file  = file(a, "r")
     j = json.loads(input_file.read())
+    
+
     #print j["songSubName"]
     #print j
     environmentName=j['environmentName']
@@ -336,18 +231,220 @@ def OnDouble(event):
     diff=difficultyLevels
     ddd=''
         
-    '''
-    for aa in difficultyLevels:
-        print aa
-        print type(aa)
-        for key, value in aa.iteritems() :
-            print key,value
-    '''
+    diffE=False
+    diffN=False
+    diffH=False
+    diffX=False
+    diffP=False
+    #print diff
+    for i in range(len(diff)):
+        #print diff[i]
+        test2=diff[i]
+        di= test2['difficulty']
+        #print di
+        if di=='Normal':
+            diffN=True
+        if di=='Easy':
+            diffE=True
+        if di=='Hard':
+        
+
+            diffH=True
+        if di=="Expert":
+            diffX=True
+        if di=="ExpertPlus":
+            diffP=True
+            #print test2
+            #teest=raw_input('fuck')
+        
+        
+            #print diffE,diffN,diffH,diffX,diffP
+
+    
+    
     authorName=j['authorName']
+    authorNameS=authorName
+    if len(authorName)>short:
+        authorNameS=authorNameS[:short]+'...'
+        #print authorNameS
+    
+    
     songsubname=j['songSubName']
-    bpm=j['beatsPerMinute']
+
+    songsubnameS=songsubname
+    if len(songsubname)>short:
+        songsubnameS=songsubnameS[:short]+'...'
+        #print songsubnameS
+
     songName=j['songName']
+    songNameS=songName
+    if len(songNameS)>short:
+        songNameS=songNameS[:short]+'...'
+       # print songNameS
+
+
+
+
+
+
+    
+    bpm=j['beatsPerMinute']
+    #bpm,junk2=bpm(split,'.')
+    
+    try:
+        bpm=str(bpm)
+        bpm,junk=split(bpm,'.')
+    except:
+        ''
+    
     thumb=j['coverImagePath']
+    ###extra 0 for future content
+    songdetails=[value,songName,songsubname,authorName,diffE,diffN,diffH,diffX,diffP,str(bpm),'',environmentName,authorNameS,songsubnameS,songNameS,thumb,'',0,0,0,0,0,]
+    #17=updated?
+    mlist.append(songdetails)
+    #print songdetails
+def loadxinfo(j,value):
+    print value,'VALUE'
+
+    
+    '''
+    aa=aa+'    "SongName": "'+mlist[a][1]+'",\n'
+    aa=aa+'    "ArtistName": "'+mlist[a][3]+'",\n'
+    aa=aa+'    "Mapper": "'+mlist[a][2]+'",\n'
+    aa=aa+'    "Directory": "'+mlist[a][0]+'",\n'
+    aa=aa+'    "Easy?": "'+str(mlist[a][4])+'",\n'
+    aa=aa+'    "Normal": "'+str(mlist[a][5])+'",\n'
+    aa=aa+'    "Hard": "'+str(mlist[a][6])+'",\n'
+    aa=aa+'    "Expert": "'+str(mlist[a][7])+'",\n'
+    aa=aa+'    "Expert+": "'+str(mlist[a][8])+'",\n'
+    aa=aa+'    "BPM": '+mlist[a][9]+',\n'
+    aa=aa+'    "User Rating": '+mlist[a][10]+',\n'
+    aa=aa+'    "Enviroment": "'+mlist[a][11]+'",\n'
+    aa=aa+'    "Short Artist": "'+mlist[a][12]+'",\n'
+    aa=aa+'    "Short Song": "'+mlist[a][13]+'",\n'
+    aa=aa+'    "Short Mapper": "'+mlist[a][14]+'",\n'
+    aa=aa+'    "Thumbnail": "'+mlist[a][15]+'",\n'
+    aa=aa+'    "BeatSaverID (FUTURE)": "'+mlist[a][16]+'",\n'
+    aa=aa+'    "Comments(FUTURE)": "'+str(mlist[a][17])+'",\n'
+    aa=aa+'    "Genere(FURURE)": "'+str(mlist[a][18])+'",\n'
+    aa=aa+'    "Uploaded(FUTURE)": "'+str(mlist[a][19])+'",\n'
+    aa=aa+'    "Downloaded(FUTURE)": "'+str(mlist[a][20])+'"\n}'
+    '''
+    
+
+
+
+    
+    #print j,value,' inputfile and value of loadx'
+
+    global listsongs
+    global mlist
+    
+    newa=j["Directory"],j["SongName"],j["Mapper"],j["ArtistName"],sb(j["Easy?"]),sb(j["Normal"]),sb(j["Hard"]),sb(j["Expert"]),sb(j["Expert+"]),j["BPM"],j["User Rating"],j["Enviroment"],j["Short Artist"],j["Short Song"],j["Short Mapper"],j["Thumbnail"],j["BeatSaverID"],j["Comments"],j["Genere"],
+    j["Uploaded"],j["Downloaded"]
+    mlist.append(newa)
+    print type(j["Hard"]),'jhard#######'
+    
+    
+def sb(v):
+  return v.lower() in ("yes", "true", "t", "1")   
+
+def firstload():
+    global listSongs
+    global mlist
+    listSongs.delete(0,'end')
+    mlist=[]
+    dirs=[]
+    for x in os.listdir(dirpath):
+        dirs.append(x)
+    sl=[]
+    sl=dirs
+    xdata=0
+    for c in range(len(sl)):
+        has_extra_data=False
+        
+        value=sl[c]
+        if value!='.cache':
+            if value!='playlist.json':
+        
+                
+                
+                if 1==1:
+                    a=dirpath+"/"+value+"/info.json"
+                    a_extra=dirpath+"/"+value+"/einfo.json"
+                    input_file  = file(a, "r")
+                    try:
+                        input_file2  = file(a_extra, "r")
+                        j2 = json.loads(input_file2.read())
+                        has_extra_data=True
+                        if debug>50:
+                            print 'found extra data',value
+                            
+                    except:
+                        if debug>10:
+                            print 'did not find extra data',value
+                    if has_extra_data==False:
+                        #load all songs without extradata
+                        loadinfojson(input_file,value)
+                        ""
+
+                    if has_extra_data==True:
+                        xdata=xdata+1
+                        loadxinfo(j2,value)
+                        ''
+                        #print 'running extra data'
+    if debug>3:
+        print xdata, 'found songs with x data'
+def OnDouble(event):
+    global lastselected
+    
+    Label(text="All Songs "+str(len(mlist)),font=(20)).grid(row=0,column=0,columnspan=7)
+    #global value
+    #widget = event.widget
+
+    selection=listSongs.curselection()
+    if type(selection)==tuple:
+
+        print selection,'tuple.'
+        selection=selection[0]
+    value= mlist[selection][0]
+
+    
+    #value55 = widget.get(selection[0])
+    #print value55
+    #print "selection:", selection, ": '%s'" % value
+    #a=dirpath+"/"+value+"/info.json"
+    #print a
+    #input_file  = file(a, "r")
+    #j = json.loads(input_file.read())
+    #print j["songSubName"]
+    #print j
+    diff=0
+    try:
+        environmentName=mlist[selection][11]
+    except:
+        selection=selection[0]
+        environmentName=mlist[selection][11]
+    for i in range(4-10):
+        if mlist[selection][i]:
+            diff=diff+1
+    ddd=diff
+    print diff,'diff levels'
+    
+
+        
+
+    #songdetails=[value,songName,songsubname,authorName,diffE,diffN,diffH,diffX,diffP,str(bpm),'',environmentName,authorNameS,songsubnameS,songNameS,thumb,'',0,0,0,0,0,]
+
+
+
+
+
+    authorName=mlist[selection][3]
+    songsubname=mlist[selection][2]
+    bpm=mlist[selection][9]
+    songName=mlist[selection][1]
+    thumb=mlist[selection][15]
     #print thumb
     try:
         image = Image.open(dirpath+'/'+value+'/'+thumb)
@@ -389,12 +486,13 @@ def OnDouble(event):
 
 
 
-    
+    '''
     #print diff
     for bb in difficultyLevels:
         #print bb
         #print type(bb)
         ddd= bb['difficulty']+' '+ddd
+    '''
         
 
 
@@ -406,9 +504,11 @@ def OnDouble(event):
 def Sort():
     print "sort"
 def savesongs():
+    ###Saves mlist (all song array) to local file for caching
     dd=open('localsongs.txt','w')
     dd.write(str(mlist))
     dd.close()
+    print 'saving to localcongs.txt'
 
 def opensongs():
     global mlist
@@ -429,6 +529,9 @@ def sortS(sort):
 
     for z in range(11):
         listSongs.column_configure(z,arrow='none')
+        #print listSongs.column_configure(z, <Button-1>)
+
+        
     
     
 
@@ -439,8 +542,8 @@ def sortS(sort):
         way=False
         listSongs.column_configure(sort,arrow='up')
         
-    #mlist=natsorted(mlist,key=lambda l:l[sort], reverse=way)
-    mlist=sorted(mlist,key=lambda l:l[sort], reverse=way)
+    mlist=natsorted(mlist,key=lambda l:l[sort], reverse=way)
+    #mlist=sorted(mlist,key=lambda l:l[sort], reverse=way)
     #mlist=natsorted(mlist)
     init()
     way=way+1
@@ -450,9 +553,70 @@ def sortS(sort):
 
         
     return way
-    
-    
+def write_extra_data(a,val):
 
+#songdetails=[value,songName,songsubname,authorName,diffE,diffN,diffH,diffX,diffP,str(bpm),'',environmentName,authorNameS,songsubnameS,songNameS,thumb,'',0,0,0,0,0,]
+    print mlist[a]
+
+    aa='{\n'
+    aa=aa+'    "SongName": "'+mlist[a][1]+'",\n'
+    aa=aa+'    "ArtistName": "'+mlist[a][3]+'",\n'
+    aa=aa+'    "Mapper": "'+mlist[a][2]+'",\n'
+    aa=aa+'    "Directory": "'+mlist[a][0]+'",\n'
+    aa=aa+'    "Easy?": "'+str(mlist[a][4])+'",\n'
+    aa=aa+'    "Normal": "'+str(mlist[a][5])+'",\n'
+    aa=aa+'    "Hard": "'+str(mlist[a][6])+'",\n'
+    aa=aa+'    "Expert": "'+str(mlist[a][7])+'",\n'
+    aa=aa+'    "Expert+": "'+str(mlist[a][8])+'",\n'
+    aa=aa+'    "BPM": '+mlist[a][9]+',\n'
+    aa=aa+'    "User Rating": '+mlist[a][10]+',\n'
+    aa=aa+'    "Enviroment": "'+mlist[a][11]+'",\n'
+    aa=aa+'    "Short Artist": "'+mlist[a][12]+'",\n'
+    aa=aa+'    "Short Song": "'+mlist[a][13]+'",\n'
+    aa=aa+'    "Short Mapper": "'+mlist[a][14]+'",\n'
+    aa=aa+'    "Thumbnail": "'+mlist[a][15]+'",\n'
+    aa=aa+'    "BeatSaverID": "'+mlist[a][16]+'",\n'
+    aa=aa+'    "Comments": "'+str(mlist[a][17])+'",\n'
+    aa=aa+'    "Genere": "'+str(mlist[a][18])+'",\n'
+    aa=aa+'    "Uploaded": "'+str(mlist[a][19])+'",\n'
+    aa=aa+'    "Downloaded": "'+str(mlist[a][20])+'"\n}'
+    
+    w=open(dirpath+"/"+mlist[a][0]+"/einfo.json",'w')
+    w.write(aa)
+    if debug>3:
+        print aa, 'extra json output'
+        print 'wrote '+mlist[a][1]
+
+
+    
+    
+def export_extra_data():
+    updating=0
+    if debug>1:
+        print "exporting extra data"
+    for a in range(len(mlist)):
+        #print mlist[a][17]
+        
+        if mlist[a][17]==1:
+            if debug>0:
+                print mlist[a][10],"found an update",mlist[a][1]
+            write_extra_data(a,10)
+            
+    print updating, ' Songs have updates'
+def clear_data():
+    listSongs.delete(0,'end')
+def Test(event):
+    widget = event.widget
+    print widget
+    selection=widget.curselection()
+    print selection
+
+def nice(event):
+    print 'nice'
+    try:
+        OnDouble(event[0])
+    except:
+        OnDouble(event)
 def main():
     global listPlist
     global listSongs
@@ -483,6 +647,7 @@ def main():
 
     filemenu = Menu(menubar, tearoff=0)
     filemenu.add_command(label="Local Songs", command=init)
+    filemenu.add_command(label="Extra_Data", command=export_extra_data)
     filemenu.add_command(label="BeatSaberDB", command=save)
     filemenu.add_command(label="BsaberDB", command=save)
 
@@ -502,7 +667,7 @@ def main():
     filemenu.add_command(label="Current Playlist", command=save)
     filemenu.add_command(label="Favorites", command=save)
 
-    menubar.add_cascade(label="Export", menu=filemenu)
+    menubar.add_cascade(label="Import", menu=filemenu)
 
     filemenu = Menu(menubar, tearoff=0)
     filemenu.add_command(label="Song", command=lambda: sortS(1))
@@ -520,24 +685,32 @@ def main():
     filemenu.add_command(label="Expert", command=lambda: sortS(7))
     filemenu.add_command(label="Expert+", command=lambda: sortS(8))
 
-    
-     
-    print "TEST"
-
     menubar.add_cascade(label="Sort", menu=filemenu)
 
     
+    if debug>0:
+
+        
+        filemenu = Menu(menubar, tearoff=0)
+
+        filemenu.add_command(label="clear", command=lambda: clear_data())
+        filemenu.add_command(label="firstload", command=lambda: firstload())
+        filemenu.add_command(label="init", command=lambda: init())
+        filemenu.add_command(label="4", command=lambda: sortS(7))
+        filemenu.add_command(label="5+", command=lambda: sortS(8))
+
+        
+         
+
+        menubar.add_cascade(label=str(len(mlist)), menu=filemenu)
+
 
     
     root.config(menu=menubar)
 
 
 
-
-
-
-
-    Label(text="All Songs",font=(20)).grid(row=0,column=0,columnspan=7)
+    Label(text="All Songs "+str(len(mlist)),font=(20)).grid(row=0,column=0,columnspan=7)
     Label(text="Playlist",font=(20)).grid(row=0,column=8,columnspan=4)
 
 
@@ -545,14 +718,7 @@ def main():
 
 
 
-    #listInfo = Listbox(frameI, width=30, height=20, font=("Helvetica", 12))
-    #listInfo.grid(row=1,column=0)
 
-
-
-
-
-    #print emoji.emojize(use_aliases=True)
     listPlist = Listbox(root, width=30, height=20, font=("Helvetica", 12))
     listPlist.grid(row=1,column=8,columnspan=4)
     listPlist.bind("<Double-Button-1>", OnDouble)
@@ -560,7 +726,7 @@ def main():
 
 
     #listSongs = Listbox(root, width=30, height=20, font=("Helvetica", 12))
-    listSongs = Tktree.MultiListbox(root, width=1200,height=400,font=("Helvetica", 12))
+    listSongs = Tktree.MultiListbox(root, width=1200,height=400,font=("Helvetica", 12),backgroundmode="row",selectmode=1,selectcmd=nice)
     listSongs.grid(row=1,column=0,rowspan=1,columnspan=8)
     #listSongs.config(columns=('Directory', 'Song Name','songSubname','authorName','difficlty','bpm','rating','highscore','date'))
     print emoji.emojize('Python is :thumbs_up:')
@@ -568,20 +734,23 @@ def main():
     listSongs.column_configure(1,arrow='down')
     listSongs.bind("<Double-Button-1>", OnDouble)
     #listSongs.bind("<Double-Button-1>", add)
+    listSongs.column_configure(0,button=True)
+    woop = Image.open('shit.png')
+    woop = woop.resize((10, 40))
+    woop = ImageTk.PhotoImage(woop)
+    woop
+
+    listSongs.configure(backgroundimage=woop)
+
+    
+
+
+
+
 
     ##############songdetails=[value,songName,songsubname,authorName,diff,bpm,thumb,environmentName]
 
 
-
-
-
-
-    
-
-    #w = Canvas(root, width=400, height=380,bg="white")
-    #w.create_rectangle(50, 25, 150, 75, fill="white")
-    #w.create_text(10,20,anchor='nw',justify='left',fill="black",font="Helvetica 12 ", width=400,text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce quis arcu volutpat arcu malesuada imperdiet quis id sem. Nunc ornare sapien in ante bibendum, quis blandit ante semper. Nullam ante arcu, semper nec suscipit vitae, vehicula sit amet felis. Nulla facilisi. Aenean interdum vel ante sed facilisis. Sed interdum pretium gravida. Suspendisse suscipit id turpis quis elementum. Nunc dapibus in justo a gravida. Aliquam ullamcorper nibh non leo posu.")
-    #w.grid(row=1,column=1,columnspan=1)
 
 
 
@@ -637,6 +806,7 @@ def main():
         firstload()
         print 'wtf'
     init()
+    sortS(1)
 
 
     mainloop()
