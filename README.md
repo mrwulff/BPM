@@ -14,5 +14,5 @@ pip install natsort
 
 Tkinter
 
-![alt text](https://raw.githubusercontent.com/mrwulff/BeatSaberPlaylist/blob/master/Screenshot_3.png)
-[alt text](https://raw.githubusercontent.com/mrwulff/BeatSaberPlaylist/blob/master/Screenshot_3.png)
+![alt text](https://raw.githubusercontent.com/mrwulff/BeatSaberPlaylist/master/Screenshot_3.png)
+
