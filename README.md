@@ -1,4 +1,4 @@
-﻿# BeatSaberPlaylist
+﻿# BeatSaber Playlist Maker (BPM)
 
 python 2.7
 
