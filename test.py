@@ -1,5 +1,8 @@
 from Tkinter import *
 import TkTreectrl as Tktree
+import webbrowser
+import Tkinter, Tkconstants, tkFileDialog
+
 
 import os
 import json
@@ -8,8 +11,12 @@ from string import *
 import emoji
 import ast
 from natsort import natsorted
+import shutil
 
-dirpath ="C:/vr/Beat Saber/CustomSongs"
+from tkinter import ttk
+
+
+dirpath =0
 
 
 listPlist=0
@@ -20,6 +27,7 @@ pvalue=0
 txtColor='white'
 plistselect2=0
 mlist=[]
+tempmlist=[]
 dirs=[]
 short=20
 #column=[]
@@ -28,19 +36,27 @@ short=20
 upordown=1
 debug=5
 lastselected=0
+searchf=[]
+
+dif=[False,False,False,False,False]
+test1=0
 
 
 def rate(rating):
 
+    
+        
     selection=listSongs.curselection()
+
+    
     if debug>0:
-        print selection,rating ,' Song selection and rating'
+        print selection,rating ,mlist[selection[0]][10],' Song selection and rating'
     rating=str(rating)
     mlist[selection[0]][10]=rating
     mlist[selection[0]][17]=1
     export_extra_data()
     savesongs()
-    init()
+    init(mlist)
 
 
     
@@ -97,17 +113,21 @@ def save():
     
     
 
-def init():
-    Label(text="All Songs "+str(len(mlist)),font=(20)).grid(row=0,column=0,columnspan=7)
+def init(all_list):
 
-    print 'running init with',len(mlist),' songs'
-    listSongs.delete(0,'end')
-    print 'running ini2 with',len(mlist),' songs'
+    Label(anchor='w',text=str(len(all_list))+" Songs ",font=(20)).grid(row=0,column=0,columnspan=7,ipadx=50,sticky='W')
+
+    print 'running init with',len(all_list),' songs'
+    try:
+        listSongs.delete(0,'end')
+    except:
+        print listSongs
+    print 'running ini2 with',len(all_list),' songs'
     
     odd=0
     tag="odd"
 
-    for x in range(len(mlist)):
+    for x in range(len(all_list)):
         odd=odd+1
 
         ea=''
@@ -117,24 +137,24 @@ def init():
         p=''
 
         
-        if mlist[x][4]==True:
+        if all_list[x][4]==True:
             ea=emoji.emojize(':heavy_check_mark:')
-        if mlist[x][5]==True:
+        if all_list[x][5]==True:
             m=emoji.emojize(':heavy_check_mark:')
-        if mlist[x][6]==True:
+        if all_list[x][6]==True:
             h=emoji.emojize(':heavy_check_mark:')
-        if mlist[x][7]==True:
+        if all_list[x][7]==True:
             ex=emoji.emojize(':heavy_check_mark:')
-        if mlist[x][8]==True:
+        if all_list[x][8]==True:
             p=emoji.emojize(':heavy_check_mark:')
 
         rate=''
-        if mlist[x][10]=='':
-            (mlist[x][10])=0
-        for cz in range(int(mlist[x][10])):
+        if all_list[x][10]=='':
+            (all_list[x][10])=0
+        for cz in range(int(all_list[x][10])):
             rate=rate+emoji.emojize(':star:',use_aliases=True)
         
-        listSongs.insert(END,emoji.emojize(':star:',use_aliases=True),mlist[x][14],mlist[x][13],mlist[x][12],ea,m,h,ex,p,mlist[x][9],rate,)
+        listSongs.insert(END,emoji.emojize(':star:',use_aliases=True),all_list[x][14],all_list[x][13],all_list[x][12],ea,m,h,ex,p,all_list[x][9],rate,all_list[x][16],'no')
         
         tag = "even" if tag == "odd" else "odd"
         '''
@@ -148,9 +168,9 @@ def init():
             
         
 
+    #sortS(1)
 
 
-    
 
 def add():
     cc=listSongs.curselection()
@@ -218,7 +238,7 @@ def move_up():
     listPlist.insert(pos-1, text)
     listPlist.select_set(pos-1)
 
-def loadinfojson(input_file,value):
+def loadinfojson(input_file,value,bsid):
     global listsongs
     global mlist
     j = json.loads(input_file.read())
@@ -299,11 +319,11 @@ def loadinfojson(input_file,value):
     
     thumb=j['coverImagePath']
     ###extra 0 for future content
-    songdetails=[value,songName,songsubname,authorName,diffE,diffN,diffH,diffX,diffP,str(bpm),'',environmentName,authorNameS,songsubnameS,songNameS,thumb,'',0,0,0,0,0,]
+    songdetails=[value,songName,songsubname,authorName,diffE,diffN,diffH,diffX,diffP,str(bpm),'',environmentName,authorNameS,songsubnameS,songNameS,thumb,bsid,0,0,0,0,0,]
     #17=updated?
     mlist.append(songdetails)
     #print songdetails
-def loadxinfo(j,value):
+def loadxinfo(j,value,bsid):
     print value,'VALUE'
 
     
@@ -343,15 +363,21 @@ def loadxinfo(j,value):
     newa=j["Directory"],j["SongName"],j["Mapper"],j["ArtistName"],sb(j["Easy?"]),sb(j["Normal"]),sb(j["Hard"]),sb(j["Expert"]),sb(j["Expert+"]),j["BPM"],j["User Rating"],j["Enviroment"],j["Short Artist"],j["Short Song"],j["Short Mapper"],j["Thumbnail"],j["BeatSaverID"],j["Comments"],j["Genere"],
     j["Uploaded"],j["Downloaded"]
     mlist.append(newa)
-    print type(j["Hard"]),'jhard#######'
+    #rint type(j["Hard"]),'jhard#######'
     
     
 def sb(v):
-  return v.lower() in ("yes", "true", "t", "1")   
+  return v.lower() in ("yes", "true", "t", "1")
+def findid(a,b):
+    newdirpath=a+'/'+b+'/'
+    for x in os.listdir(newdirpath):
+        return b+'/'+x,b
+
 
 def firstload():
     global listSongs
     global mlist
+    
     listSongs.delete(0,'end')
     mlist=[]
     dirs=[]
@@ -361,6 +387,8 @@ def firstload():
     sl=dirs
     xdata=0
     for c in range(len(sl)):
+        bsid=0
+        isid=False
         has_extra_data=False
         
         value=sl[c]
@@ -370,14 +398,26 @@ def firstload():
                 
                 
                 if 1==1:
+                    try:
+                        #print value,'wtf'
+                        if int(value)>1:
+                           isid=True
+                    except:
+                        print value,'not found'
+                        ''
+                    if isid:
+                        
+                        value,bsid=findid(dirpath,value)
+                    
+                           
                     a=dirpath+"/"+value+"/info.json"
-                    a_extra=dirpath+"/"+value+"/einfo.json"
+                    a_extra=dirpath+"/"+value+"/ainfo.json"
                     input_file  = file(a, "r")
                     try:
                         input_file2  = file(a_extra, "r")
                         j2 = json.loads(input_file2.read())
                         has_extra_data=True
-                        if debug>50:
+                        if debug>1:
                             print 'found extra data',value
                             
                     except:
@@ -385,20 +425,25 @@ def firstload():
                             print 'did not find extra data',value
                     if has_extra_data==False:
                         #load all songs without extradata
-                        loadinfojson(input_file,value)
+                        loadinfojson(input_file,value,bsid)
                         ""
 
                     if has_extra_data==True:
                         xdata=xdata+1
-                        loadxinfo(j2,value)
+                        loadxinfo(j2,value,bsid)
                         ''
                         #print 'running extra data'
     if debug>3:
         print xdata, 'found songs with x data'
+ 
+        
+       
 def OnDouble(event):
+    
     global lastselected
     
-    Label(text="All Songs "+str(len(mlist)),font=(20)).grid(row=0,column=0,columnspan=7)
+
+    #Label(text="All Songs "+str(len(mlist)),font=(20)).grid(row=0,column=0,columnspan=5)
     #global value
     #widget = event.widget
 
@@ -408,6 +453,13 @@ def OnDouble(event):
         print selection,'tuple.'
         selection=selection[0]
     value= mlist[selection][0]
+
+    '''
+    if mlist[selection][16] == 0:
+        updatebsid(selection)
+    if mlist[selection][16] == "":
+        updatebsid(selection)
+    '''
 
     
     #value55 = widget.get(selection[0])
@@ -419,17 +471,32 @@ def OnDouble(event):
     #j = json.loads(input_file.read())
     #print j["songSubName"]
     #print j
-    diff=0
+    diff=''
+    
     try:
         environmentName=mlist[selection][11]
     except:
         selection=selection[0]
         environmentName=mlist[selection][11]
+    '''
     for i in range(4-10):
+        print i,'shitbird'
         if mlist[selection][i]:
             diff=diff+1
     ddd=diff
     print diff,'diff levels'
+    '''
+    print mlist[selection][4],'woop'
+    if mlist[selection][4]:
+        diff=diff+'Easy '
+    if mlist[selection][5]:
+        diff=diff+'Normal '
+    if mlist[selection][6]:
+        diff=diff+'Hard '
+    if mlist[selection][7]:
+        diff=diff+'Expert '
+    if mlist[selection][8]:
+        diff=diff+'Expert+'
     
 
         
@@ -447,6 +514,7 @@ def OnDouble(event):
     thumb=mlist[selection][15]
     #print thumb
     try:
+        print dirpath+'/'+value+'/'+thumb
         image = Image.open(dirpath+'/'+value+'/'+thumb)
     except:
         image = Image.open(dirpath+'/'+value+'/'+thumb+'.jpg')
@@ -462,29 +530,32 @@ def OnDouble(event):
 
     #return songName,thumb,bpm,songsubname,authorName,environmentName
     offs=1
+    fcoll=0
+    p=7
     
-    Label(justify='right',anchor='w',bg=txtColor,text=songName,font=(12)).grid(       row=offs+3,column=1,ipadx=100,sticky='W'+'E'+'S'+'N',columnspan=7)
-    Label(justify='left',anchor='w',bg=txtColor,text=songsubname,font=(12)).grid(     row=offs+4,column=1,ipadx=100,sticky='W'+'E'+'S'+'N',columnspan=7)
-    Label(justify='left',anchor='w',bg=txtColor,text=authorName,font=(12)).grid(      row=offs+5,column=1,ipadx=100,sticky='W'+'E'+'S'+'N',columnspan=7)
-    Label(justify='left',anchor='w',bg=txtColor,text=songName,font=(12)).grid(        row=offs+7,column=1,ipadx=100,sticky='W'+'E'+'S'+'N',columnspan=7)
-    Label(justify='left',anchor='nw',bg=txtColor,text=environmentName,font=(12)).grid(row=offs+8,column=1,ipadx=100,sticky='W'+'E'+'S'+'N',columnspan=7)
-    Label(justify='left',anchor='nw',bg=txtColor,text=bpm,font=(12)).grid(            row=offs+9,column=1,ipadx=100,sticky='W'+'E'+'S'+'N',columnspan=7)
+    Label(justify='right',anchor='w',bg=txtColor,text=songName,font=(12)).grid(       row=offs+3,column=fcoll+1,ipadx=100,sticky='W'+'E'+'S'+'N',columnspan=7+p)
+    Label(justify='left',anchor='w',bg=txtColor,text=songsubname,font=(12)).grid(     row=offs+4,column=fcoll+1,ipadx=100,sticky='W'+'E'+'S'+'N',columnspan=7+p)
+    Label(justify='left',anchor='w',bg=txtColor,text=authorName,font=(12)).grid(      row=offs+5,column=fcoll+1,ipadx=100,sticky='W'+'E'+'S'+'N',columnspan=7+p)
+    Label(justify='left',anchor='w',bg=txtColor,text=songName,font=(12)).grid(        row=offs+7,column=fcoll+1,ipadx=100,sticky='W'+'E'+'S'+'N',columnspan=7+p)
+    Label(justify='left',anchor='nw',bg=txtColor,text=environmentName,font=(12)).grid(row=offs+8,column=fcoll+1,ipadx=100,sticky='W'+'E'+'S'+'N',columnspan=7+p)
+    Label(justify='left',anchor='nw',bg=txtColor,text=bpm,font=(12)).grid(            row=offs+9,column=fcoll+1,ipadx=100,sticky='W'+'E'+'S'+'N',columnspan=7+p)
+    Label(justify='left',anchor='w',bg=txtColor,text=diff,font=(12)).grid(row=offs+6,column=fcoll+1,columnspan=7+p,ipadx=100,sticky='W'+'E'+'S'+'N')
 
 
-    Label(justify='left',anchor='e',bg=txtColor,text="Title: ",font=(12)).grid(       row=offs+3,column=0,ipadx=100,sticky='W'+'E'+'S'+'N',columnspan=1)
-    Label(justify='left',anchor='e',bg=txtColor,text="Artist: ",font=(12)).grid(      row=offs+4,column=0,ipadx=100,sticky='W'+'E'+'S'+'N',columnspan=1)
-    Label(justify='left',anchor='e',bg=txtColor,text="Mapper: ",font=(12)).grid(      row=offs+5,column=0,ipadx=100,sticky='W'+'E'+'S'+'N',columnspan=1)
-    Label(justify='left',anchor='e',bg=txtColor,text="Difficulties: ",font=(12)).grid(row=offs+6,column=0,ipadx=100,sticky='W'+'E'+'S'+'N',columnspan=1)
-    Label(justify='left',anchor='e',bg=txtColor,text="ID: ",font=(12)).grid(          row=offs+7,column=0,ipadx=100,sticky='W'+'E'+'S'+'N',columnspan=1)
-    Label(justify='left',anchor='e',bg=txtColor,text="Graphics: ",font=(12)).grid(    row=offs+8,column=0,ipadx=100,sticky='W'+'E'+'S'+'N',columnspan=1)
-    Label(justify='left',anchor='e',bg=txtColor,text="BPM: ",font=(12)).grid(         row=offs+9,column=0,ipadx=100,sticky='W'+'E'+'S'+'N',columnspan=1)
-    Label(justify='left',anchor='e',bg=txtColor,text="HighScore: ",font=(12)).grid(  row=offs+10,column=0,ipadx=100,sticky='W'+'E'+'S'+'N',columnspan=1)
-    Label(justify='left',anchor='e',bg=txtColor,text="Rating: ",font=(12)).grid(     row=offs+11,column=0,ipadx=100,sticky='W'+'E'+'S'+'N',columnspan=1)
-    Label(justify='left',anchor='e',bg=txtColor,text="Comment: ",font=(12)).grid(    row=offs+12,column=0,ipadx=100,sticky='W'+'E'+'S'+'N',columnspan=1)
-    Label(justify='left',anchor='e',bg=txtColor,text="Categories : ",font=(12)).grid(row=offs+13,column=0,ipadx=100,sticky='W'+'E'+'S'+'N',columnspan=1)
+    Label(justify='left',anchor='e',bg=txtColor,text="Title: ",font=(12)).grid(       row=offs+3,column=fcoll+0,ipadx=100,sticky='W'+'E'+'S'+'N',columnspan=1)
+    Label(justify='left',anchor='e',bg=txtColor,text="Artist: ",font=(12)).grid(      row=offs+4,column=fcoll+0,ipadx=100,sticky='W'+'E'+'S'+'N',columnspan=1)
+    Label(justify='left',anchor='e',bg=txtColor,text="Mapper: ",font=(12)).grid(      row=offs+5,column=fcoll+0,ipadx=100,sticky='W'+'E'+'S'+'N',columnspan=1)
+    Label(justify='left',anchor='e',bg=txtColor,text="Difficulties: ",font=(12)).grid(row=offs+6,column=fcoll+0,ipadx=100,sticky='W'+'E'+'S'+'N',columnspan=1)
+    Label(justify='left',anchor='e',bg=txtColor,text="Directory: ",font=(12)).grid(          row=offs+7,column=fcoll+0,ipadx=100,sticky='W'+'E'+'S'+'N',columnspan=1)
+    Label(justify='left',anchor='e',bg=txtColor,text="Graphics: ",font=(12)).grid(    row=offs+8,column=fcoll+0,ipadx=100,sticky='W'+'E'+'S'+'N',columnspan=1)
+    Label(justify='left',anchor='e',bg=txtColor,text="BPM: ",font=(12)).grid(         row=offs+9,column=fcoll+0,ipadx=100,sticky='W'+'E'+'S'+'N',columnspan=1)
+    Label(justify='left',anchor='e',bg=txtColor,text="HighScore: ",font=(12)).grid(  row=offs+10,column=fcoll+0,ipadx=100,sticky='W'+'E'+'S'+'N',columnspan=1)
+    Label(justify='left',anchor='e',bg=txtColor,text="Rating: ",font=(12)).grid(     row=offs+11,column=fcoll+0,ipadx=100,sticky='W'+'E'+'S'+'N',columnspan=1)
+    Label(justify='left',anchor='e',bg=txtColor,text="Comment: ",font=(12)).grid(    row=offs+12,column=fcoll+0,ipadx=100,sticky='W'+'E'+'S'+'N',columnspan=1)
+    Label(justify='left',anchor='e',bg=txtColor,text="Categories : ",font=(12)).grid(row=offs+13,column=fcoll+0,ipadx=100,sticky='W'+'E'+'S'+'N',columnspan=1)
 
 
-
+    
 
     '''
     #print diff
@@ -498,15 +569,17 @@ def OnDouble(event):
 
     label = Label(image=photo)
     label.image=photo
-    label.grid(row=3,column=8,rowspan=9,columnspan=4,sticky="N"+"W")
-    Label(justify='left',anchor='w',bg=txtColor,text=ddd,font=(12)).grid(row=offs+6,column=1,columnspan=7,ipadx=100,sticky='W'+'E'+'S'+'N')
+    
+    
+    label.grid(row=3,column=18,rowspan=9,columnspan=4,sticky="N"+"W")
 
-def Sort():
-    print "sort"
+
 def savesongs():
     ###Saves mlist (all song array) to local file for caching
+    print 'opendd'
     dd=open('localsongs.txt','w')
     dd.write(str(mlist))
+    print 'wrotedd'
     dd.close()
     print 'saving to localcongs.txt'
 
@@ -519,7 +592,7 @@ def opensongs():
         #print len(line)
         #print type(line[1])
         mlist=line
-def sortS(sort):
+def sortS(sort,col):
     global upordown
     global listSongs
 
@@ -542,10 +615,10 @@ def sortS(sort):
         way=False
         listSongs.column_configure(sort,arrow='up')
         
-    mlist=natsorted(mlist,key=lambda l:l[sort], reverse=way)
+    mlist=natsorted(mlist,key=lambda l:l[col], reverse=way)
     #mlist=sorted(mlist,key=lambda l:l[sort], reverse=way)
     #mlist=natsorted(mlist)
-    init()
+    init(mlist)
     way=way+1
     print way,' in sort'
     #for a in range(len(mlist)):
@@ -557,6 +630,7 @@ def write_extra_data(a,val):
 
 #songdetails=[value,songName,songsubname,authorName,diffE,diffN,diffH,diffX,diffP,str(bpm),'',environmentName,authorNameS,songsubnameS,songNameS,thumb,'',0,0,0,0,0,]
     print mlist[a]
+    print dirpath
 
     aa='{\n'
     aa=aa+'    "SongName": "'+mlist[a][1]+'",\n'
@@ -575,16 +649,16 @@ def write_extra_data(a,val):
     aa=aa+'    "Short Song": "'+mlist[a][13]+'",\n'
     aa=aa+'    "Short Mapper": "'+mlist[a][14]+'",\n'
     aa=aa+'    "Thumbnail": "'+mlist[a][15]+'",\n'
-    aa=aa+'    "BeatSaverID": "'+mlist[a][16]+'",\n'
+    aa=aa+'    "BeatSaverID": "'+str(mlist[a][16])+'",\n'
     aa=aa+'    "Comments": "'+str(mlist[a][17])+'",\n'
     aa=aa+'    "Genere": "'+str(mlist[a][18])+'",\n'
     aa=aa+'    "Uploaded": "'+str(mlist[a][19])+'",\n'
     aa=aa+'    "Downloaded": "'+str(mlist[a][20])+'"\n}'
     
-    w=open(dirpath+"/"+mlist[a][0]+"/einfo.json",'w')
+    w=open(dirpath+'/'+mlist[a][0]+"/ainfo.json",'w')
     w.write(aa)
     if debug>3:
-        print aa, 'extra json output'
+        #print aa, 'extra json output'
         print 'wrote '+mlist[a][1]
 
 
@@ -617,7 +691,237 @@ def nice(event):
         OnDouble(event[0])
     except:
         OnDouble(event)
+def search(data,f):
+    listSongs.delete(0,'end')
+    tempmlist=[]
+
+    ff=f.get()
+    print ff
+    for i in range(len(mlist)):
+        is_in=False
+        for j in range(len(mlist[i])):
+            try:
+                if lower(ff) in lower(mlist[i][j]) and is_in==False:
+                    #print mlist[i]
+                    is_in=True
+                    tempmlist.append(mlist[i])
+            except:
+                ''
+    init(tempmlist)
+def resettext():
+    searchf.delete(0, END)
+    
+    init(mlist)
+
+
+
+def callback(event):
+    webbrowser.open_new(r"http://www.google.com")
+
+def getdir():
+    global dirpath
+    dirpath = tkFileDialog.askdirectory()
+
+    d={'dir':dirpath}
+    a=open('config.json','w')
+    a.write(str(d))
+    a.close()
+    print 
+
+def filterset(root3,a,b,c,d,e,diff):
+    global test1
+    for i in range(len(a)):
+        if a[i]=='selected':
+            dif[0]=True
+        else:
+            dif[0]=False
+
+    for i in range(len(b)):
+        if b[i]=='selected':
+            dif[1]=True
+        else:
+            dif[1]=False
+
+    for i in range(len(c)):
+        if c[i]=='selected':
+            dif[2]=True
+        else:
+            dif[2]=False
+
+    for i in range(len(d)):
+        if d[i]=='selected':
+            dif[3]=True
+        else:
+            dif[3]=False
+
+    for i in range(len(e)):
+        if e[i]=='selected':
+            dif[4]=True
+        else:
+            dif[4]=False
+
+    all_list=mlist
+
+    print all_list[1][4]
+
+
+    listSongs.delete(0,'end')
+    tempmlist=[]
+
+
+    for i in range(len(mlist)):
+        is_in=False
+        for j in range(len(mlist[i])):
+            try:
+                if dif[0]==True and mlist[i][4]==True and is_in==False:
+                    #print mlist[i]
+                    is_in=True
+
+                if dif[1]==True and mlist[i][5]==True and is_in==False:
+                    #print mlist[i]
+                    is_in=True
+
+                if dif[2]==True and mlist[i][6]==True and is_in==False:
+                    #print mlist[i]
+                    is_in=True
+
+                if dif[3]==True and mlist[i][7]==True and is_in==False:
+                    #print mlist[i]
+                    is_in=True
+
+
+                if dif[4]==True and mlist[i][8]==True and is_in==False:
+                    #print mlist[i]
+                    is_in=True
+
+
+
+
+
+                    
+            except:
+                ''
+
+
+
+        if is_in==True:
+            tempmlist.append(mlist[i])
+            
+    init(tempmlist)
+
+
+def filter2():
+    global dif
+
+
+            
+    root3 = Tk()
+
+
+
+    root3.title('Filter')
+    Label(root3,text="Include in list:",font=(30)).grid(row=0,column=0,columnspan=4)
+
+
+
+    chk1 = ttk.Checkbutton(root3, text="E")
+    chk1.grid(row=3,column=0,sticky='w')
+    
+    if dif[0]==True:
+        chk1.state(['!alternate'])
+        chk1.state(['selected',])
+
+    if dif[0]==False:
+        chk1.state(['!alternate'])
+        chk1.state(['!selected'])
+
+
+
+    chk2 = ttk.Checkbutton(root3, text="N")
+    chk2.grid(row=4,column=0,sticky='w')
+
+    if dif[1]==True:
+        chk2.state(['!alternate'])
+        chk2.state(['selected',])
+
+    if dif[1]==False:
+        chk2.state(['!alternate'])
+        chk2.state(['!selected'])
+
+    chk3 = ttk.Checkbutton(root3, text="H")
+    chk3.grid(row=5,column=0,sticky='w')
+
+    if dif[2]==True:
+        chk3.state(['!alternate'])
+        chk3.state(['selected',])
+
+    if dif[2]==False:
+        chk3.state(['!alternate'])
+        chk3.state(['!selected'])
+
+    chk4 = ttk.Checkbutton(root3, text="E")
+    chk4.grid(row=6,column=0,sticky='w')
+
+    if dif[3]==True:
+        chk4.state(['!alternate'])
+        chk4.state(['selected',])
+
+    if dif[3]==False:
+        chk4.state(['!alternate'])
+        chk4.state(['!selected'])
+
+    chk5 = ttk.Checkbutton(root3, text="E+")
+    chk5.grid(row=7,column=0,sticky='w')
+
+    if dif[4]==True:
+        chk5.state(['!alternate'])
+        chk5.state(['selected',])
+
+    if dif[4]==False:
+        chk5.state(['!alternate'])
+        chk5.state(['!selected'])
+
+
+
+    setdir = Button(root3,anchor='w', text="Set Filter", command= lambda: filterset(root3,chk1.state(),chk2.state(),chk3.state(),chk4.state(),chk5.state(),dif)).grid(row=7,column=1,columnspan=1,sticky='E'+'W')
+
+
+
+def about():
+
+    root2 = Tk()
+    root2.title('ABOUT BPM')
+    Label(root2,text="BeatSaber Playlist Maker (BPM)",font=(30)).grid(row=0,column=0,columnspan=4)
+    #Label(root2,text="Coded by @kevlights",font=(20)).grid(row=1,column=0,columnspan=4)
+    Label(root2,text="Thanks to Beatsaver and Bsaver",font=(20)).grid(row=2,column=0,columnspan=4)
+
+    Label(root2,anchor='w',text="Set Beatsaber directory:",font=(20)).grid(row=3,column=0,columnspan=1,sticky='w')
+    setdir = Button(root2,anchor='w', text="...", command=getdir).grid(row=3,column=1,columnspan=1,sticky='E'+'W')
+    
+
+
+
+    
+
+    lbl = Label(root2,justify='left',anchor='w', text="Coded by Kevin", font=20 ,cursor="hand2")
+
+    lbl.grid(row=1,column=0,columnspan=4,sticky='W')
+    #lbl.pack()
+    lbl.bind("<Button-1>", callback)
+
+    Label(root2,text=dirpath,font=(14)).grid(row=4,column=0,columnspan=1)
+
+
+    
+    
+
+
+
+
+    
 def main():
+    global dirpath
+    global searchf
     global listPlist
     global listSongs
     global plistselect2
@@ -632,21 +936,40 @@ def main():
         
     root = Tk()
     root.bg='black'
+    root.title('BPM')
 
     global bpmsort
+    configfound=False
+    try:
+        zz=open('config.json','r')
+        configfound=True
+        
+    except:
+        getdir()
+
+    if configfound:
+        for line in zz.readlines():
+            line=ast.literal_eval(line)
+            dirpath= line['dir']
+            if len(dirpath)<3:
+                getdir()
+    print dirpath,'dirpath@!!!!!'
 
 
 
+    fcol=10
     menubar = Menu(root)
     filemenu = Menu(menubar, tearoff=12)
     filemenu.add_command(label="Open", command=add)
     filemenu.add_command(label="Save", command=save)
+    filemenu.add_command(label="About", command=about)
+
     filemenu.add_separator()
     filemenu.add_command(label="Exit", command=root.quit)
     menubar.add_cascade(label="File", menu=filemenu)
 
     filemenu = Menu(menubar, tearoff=0)
-    filemenu.add_command(label="Local Songs", command=init)
+    filemenu.add_command(label="Local Songs", command=init(mlist))
     filemenu.add_command(label="Extra_Data", command=export_extra_data)
     filemenu.add_command(label="BeatSaberDB", command=save)
     filemenu.add_command(label="BsaberDB", command=save)
@@ -670,20 +993,22 @@ def main():
     menubar.add_cascade(label="Import", menu=filemenu)
 
     filemenu = Menu(menubar, tearoff=0)
-    filemenu.add_command(label="Song", command=lambda: sortS(1))
-    filemenu.add_command(label="Artist", command=lambda: sortS(2))
-    filemenu.add_command(label="Mapper", command=lambda: sortS(3))
-    filemenu.add_command(label="Starred", command=lambda: sortS(4))
-    filemenu.add_command(label="Rating", command=lambda: sortS(10))
-    filemenu.add_command(label="Score", command=lambda: sortS(6))
-    bpmsort= filemenu.add_command(label="BPM", command=lambda: sortS(9))
+    bpmsort= filemenu.add_command(label="NEW", command=lambda: sortS(10,16))
+
+    filemenu.add_command(label="Song", command=lambda: sortS(1,1))
+    filemenu.add_command(label="Artist", command=lambda: sortS(2,2))
+    filemenu.add_command(label="Mapper", command=lambda: sortS(3,3))
+    filemenu.add_command(label="Starred", command=lambda: sortS(4,4))
+    filemenu.add_command(label="Rating", command=lambda: sortS(10,10))
+    filemenu.add_command(label="Score", command=lambda: sortS(6,6))
+    bpmsort= filemenu.add_command(label="BPM", command=lambda: sortS(9,9))
 
     filemenu.add_separator()
-    filemenu.add_command(label="Easy", command=lambda: sortS(4))
-    filemenu.add_command(label="Normal", command=lambda: sortS(5))
-    filemenu.add_command(label="Hard", command=lambda: sortS(6))
-    filemenu.add_command(label="Expert", command=lambda: sortS(7))
-    filemenu.add_command(label="Expert+", command=lambda: sortS(8))
+    filemenu.add_command(label="Easy", command=lambda: sortS(4,4))
+    filemenu.add_command(label="Normal", command=lambda: sortS(5,5))
+    filemenu.add_command(label="Hard", command=lambda: sortS(6,6))
+    filemenu.add_command(label="Expert", command=lambda: sortS(7,7))
+    filemenu.add_command(label="Expert+", command=lambda: sortS(8,8))
 
     menubar.add_cascade(label="Sort", menu=filemenu)
 
@@ -695,14 +1020,14 @@ def main():
 
         filemenu.add_command(label="clear", command=lambda: clear_data())
         filemenu.add_command(label="firstload", command=lambda: firstload())
-        filemenu.add_command(label="init", command=lambda: init())
+        filemenu.add_command(label="init", command=lambda: init(mlist))
         filemenu.add_command(label="4", command=lambda: sortS(7))
         filemenu.add_command(label="5+", command=lambda: sortS(8))
 
         
          
 
-        menubar.add_cascade(label=str(len(mlist)), menu=filemenu)
+        menubar.add_cascade(label="Debug", menu=filemenu)
 
 
     
@@ -710,7 +1035,7 @@ def main():
 
 
 
-    Label(text="All Songs "+str(len(mlist)),font=(20)).grid(row=0,column=0,columnspan=7)
+    #Label(text="All Songs "+str(len(mlist)),font=(20)).grid(row=0,column=0,columnspan=7)
     Label(text="Playlist",font=(20)).grid(row=0,column=8,columnspan=4)
 
 
@@ -720,17 +1045,17 @@ def main():
 
 
     listPlist = Listbox(root, width=30, height=20, font=("Helvetica", 12))
-    listPlist.grid(row=1,column=8,columnspan=4)
+    listPlist.grid(row=1,column=fcol+8,columnspan=4)
     listPlist.bind("<Double-Button-1>", OnDouble)
 
 
 
     #listSongs = Listbox(root, width=30, height=20, font=("Helvetica", 12))
     listSongs = Tktree.MultiListbox(root, width=1200,height=400,font=("Helvetica", 12),backgroundmode="row",selectmode=1,selectcmd=nice)
-    listSongs.grid(row=1,column=0,rowspan=1,columnspan=8)
+    listSongs.grid(row=1,column=0,rowspan=1,columnspan=fcol+8)
     #listSongs.config(columns=('Directory', 'Song Name','songSubname','authorName','difficlty','bpm','rating','highscore','date'))
     print emoji.emojize('Python is :thumbs_up:')
-    listSongs.config(columns=(emoji.emojize(':star:',use_aliases=True),'Song Name', 'Artist Name','Mapper?!','E','N','H','X','P','BPM','Rating'))
+    listSongs.config(columns=(emoji.emojize(':star:',use_aliases=True),'Song Name', 'Artist Name','Mapper?!','E','N','H','X','P','BPM','Rating','bsid','yes'))
     listSongs.column_configure(1,arrow='down')
     listSongs.bind("<Double-Button-1>", OnDouble)
     #listSongs.bind("<Double-Button-1>", add)
@@ -751,24 +1076,25 @@ def main():
     ##############songdetails=[value,songName,songsubname,authorName,diff,bpm,thumb,environmentName]
 
 
+    
 
 
-
-    addsongbutton = Button(root, text="Add to Playlist", command=add).grid(row=2,column=0)
+    addsongbutton = Button(root,justify='left',anchor='w', text="Filter", command=filter2).grid(row=2,column=0)
+    addsongbutton = Button(root, text="Add to Playlist", command=add).grid(row=2,column=2,columnspan=3)
 
 
     
-    addallsongbutton = Button(root, text="Add All to Playlist", command=addall).grid(row=8,column=0)
+    addallsongbutton = Button(root, text="Add All to Playlist", command=addall).grid(row=8,column=1)
 
 
 
 
 
 
-    removesongbutton = Button(root, text="RemoveSelected", command=lambda listPlist=listPlist: listPlist.delete(ANCHOR)).grid(row=2,column=8,)
-    moveup = Button(root, text="Move up", command=move_up).grid(row=2,column=9,)
-    movedown = Button(root, text="Move down", command=move_down).grid(row=2,column=10,)
-    removesongbutton2 = Button(root, text="Remove All", command=remove).grid(row=2,column=11)
+    removesongbutton = Button(root, text="RemoveSelected", command=lambda listPlist=listPlist: listPlist.delete(ANCHOR)).grid(row=2,column= fcol+8,)
+    moveup = Button(root, text="Move up", command=move_up).grid(row=2,column=fcol+9,)
+    movedown = Button(root, text="Move down", command=move_down).grid(row=2,column=fcol+10,)
+    removesongbutton2 = Button(root, text="Remove All", command=remove).grid(row=2,column=fcol+11)
 
 
 
@@ -784,18 +1110,29 @@ def main():
 
     
 
-    Label(text="Rating:",anchor="e").grid(row=2,column=1,sticky='W'+'E'+'S'+'N')
+    Label(text="Rating:",anchor="e").grid(row=2,column=fcol+1,sticky='W'+'E'+'S'+'N')
+    fcol=10
 
     #ratebutton = Button(root, text="0", command=remove).grid(row=2,column=1,sticky='W'+'E'+'S'+'N')
-    ratebutton = Button(root, text="1", command=lambda: rate(1)).grid(row=2,column=2,sticky='W'+'E'+'S'+'N')
-    ratebutton = Button(root, text="2", command=lambda: rate(2)).grid(row=2,column=3,sticky='W'+'E'+'S'+'N')
-    ratebutton = Button(root, text="3", command=lambda: rate(3)).grid(row=2,column=4,sticky='W'+'E'+'S'+'N')
-    ratebutton = Button(root, text="4", command=lambda: rate(4)).grid(row=2,column=5,sticky='W'+'E'+'S'+'N')
-    ratebutton = Button(root, text="5", command=lambda: rate(5)).grid(row=2,column=6,sticky='W'+'E'+'S'+'N')
-    ratebutton = Button(root, text=emoji.emojize(':star:',use_aliases=True), command=lambda: rate(6)).grid(row=2,column=7,sticky='W'+'E'+'S'+'N')
+    ratebutton = Button(root, text="1", command=lambda: rate(1)).grid(row=2,column=fcol+2,sticky='W'+'E'+'S'+'N')
+    ratebutton = Button(root, text="2", command=lambda: rate(2)).grid(row=2,column=fcol+3,sticky='W'+'E'+'S'+'N')
+    ratebutton = Button(root, text="3", command=lambda: rate(3)).grid(row=2,column=fcol+4,sticky='W'+'E'+'S'+'N')
+    ratebutton = Button(root, text="4", command=lambda: rate(4)).grid(row=2,column=fcol+5,sticky='W'+'E'+'S'+'N')
+    ratebutton = Button(root, text="5", command=lambda: rate(5)).grid(row=2,column=fcol+6,sticky='W'+'E'+'S'+'N')
+    ratebutton = Button(root, text=emoji.emojize(':star:',use_aliases=True), command=lambda: rate(6)).grid(row=2,column=fcol+7,sticky='W'+'E'+'S'+'N')
 
 
 
+    
+
+    #Label(text="Search",font=(20)).grid(row=0,column=5,columnspan=1)
+    #Label(text="BLALB",font=(20)).grid(row=0,column=7,columnspan=1,sticky='W'+'S'+'N')
+    searchf=Entry(root,font=(20),width=5)
+    searchf.grid(row=0,column=fcol+6,sticky='E'+'S'+'N'+'W')
+    print searchf
+    sf=searchf.get()
+    searchbutton = Button(root, text="search", command=lambda: search(sf,searchf)).grid(row=0,column=fcol+5,sticky='E'+'S'+'N')
+    searchbutton = Button(root, text="reset", command=lambda: resettext()).grid(row=0,column=fcol+7,sticky='W'+'S'+'N')
 
 
 
@@ -805,9 +1142,77 @@ def main():
         print 'error loading db. scanning dirs...'
         firstload()
         print 'wtf'
-    init()
-    sortS(1)
+    init(mlist)
+    #sortS(1)
 
 
     mainloop()
 main()
+
+
+
+
+
+
+
+
+
+'''
+def writebsid(b,c,a):
+    #shutil.move('test', 'test2')
+    print b,c,a,'JESUS SHIT'
+    print mlist[a][0],'dir?'
+    print 'oldfile=',dirpath+'/'+mlist[a][0]
+    print 'newfile=',dirpath+'/'+str(b)+'/'+mlist[a][0]
+                                         
+    shutil.move(dirpath+'/'+mlist[a][0],dirpath+'/'+str(b)+'/'+mlist[a][0])
+    
+
+    ''
+def updatebsid(a):
+    print "   OMG MOTHERFUCKER",mlist[a][16]
+    cc=open('datarip.txt')
+    l=0
+    newsong=[]
+    newdate=[]
+    newbsid=[]
+    flag=False
+
+    for line in cc.readlines():
+        
+            
+        line=ast.literal_eval(line)
+        if l==0:   
+            for i in range(len(line)):
+                newsong.append(line[i])
+        if l==1:   
+            for i in range(len(line)):
+                newdate.append(line[i])
+        if l==2:   
+            for i in range(len(line)):
+                newbsid.append(line[i])
+            
+        l=l+1
+    
+    #for c in range(len(newsong)):
+    for c in range(len(newsong)):
+        #print mlist[a][0],'       DAFUCK       ',newsong[c]
+        if newsong[c]==mlist[a][0]:
+            #print newsong[c]," FOUND MOTHERFUCKER",newbsid[c]
+            part1=newbsid[c]
+            part2=newdate[c]
+            part3=a
+            flag=True
+        
+        if mlist[a][1] in newsong[c]   :
+           #print newsong[c]," FOUND CLOSE MOTHERFUCKER",newbsid[c]
+            part1=newbsid[c]
+            part2=newdate[c]
+            part3=a
+            
+           
+            flag=True
+    if flag==True:
+        writebsid(part1,part2,part3)
+'''
+       
