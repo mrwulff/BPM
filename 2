@@ -15,33 +15,137 @@ import emoji
 import ast
 from natsort import natsorted
 import shutil
-
+have=[]
+full_list=[]
 from tkinter import ttk
 
 dirpath=''
 debug=1
+latest=0
+
+listsongs=0
+mlist=[]
+sortedlist=[]
+favlist=[]
+playlist=[]
+upordown=0
+use_aliases=True
+
+def sortbad(col):
+    newlist=[]
+    global listsongs
+    for i in range((listsongs.size())):
+        p=listsongs.get(i)
+        newlist.append(p[0])
+    #
+    #newlist[0][0]
+    newlist = natsorted(newlist, key=lambda k: k[col])
+
+    print newlist[0]
+
+    make_sheet_list(newlist)
 
 
-def update():
-    for i in range(1,2621):
+def make_sheet_list(all_list):
+    global listsongs
+    listsongs.delete(0,'end')
+    for x in range(len(all_list)):
+        #print len(all_list[x])
+        listsongs.insert(END,all_list[x][0],all_list[x][1],all_list[x][2],all_list[x][3],all_list[x][4],all_list[x][5],all_list[x][6],all_list[x][7],all_list[x][8],all_list[x][9],all_list[x][10],all_list[x][11],all_list[x][12],all_list[x][13],all_list[x][14])
+
+
+def sortS(sort,col):
+    print sort,col,'sort col'
+    global upordown
+    global listsongs
+    global sortedlist
+    global mlist
+    newlist=[]
+
+
+    #print upordown
+    upordown=upordown+1
+    #print sort,'fuck'
+
+    for z in range(11):
+        listsongs.column_configure(z,arrow='none')
+        #print listSongs.column_configure(z, <Button-1>)
+
+        
+    
+    
+
+    way=True
+    listsongs.column_configure(sort,arrow='down')
+    if upordown%2==0:
+        way=False
+        listsongs.column_configure(sort,arrow='up')
+#            line=ast.literal_eval(line)
+    '''
+    for i in range (len(sortedlist)):
+        #print sortedlist[i],type(sortedlist[i]),'sl i'
+        for j in range(len(sortedlist[i])):
+            newlist.append( sortedlist[i][j])
+            ''
+    '''
+    sortedlist = natsorted(sortedlist, key=lambda k: k[col])
+    #print newlist[0],'newlist'
+
+
+        
+    #sortedlist=natsorted(sortedlist,key=lambda l:l[col], reverse=way)
+    #sortedlist = sorted(sortedlist[0].items(), key=['authorName'])
+
+    #sortedlist=sorted(sortedlist,key=lambda l:l[1])
+    #mlist=sorted(mlist,key=lambda l:l[sort], reverse=way)
+    #mlist=natsorted(mlist)
+    make_sheet2(sortedlist)
+    way=way+1
+    print way,' in sort'
+    #for a in range(len(mlist)):
+        #print mlist[a][10]
+
+        
+    return way
+
+
+
+def check_missing():
+    global latest
+    #urllib.urlretrieve('https://beatsaver.com/api.php?mode=new','new.json')
+    #'new.json','r')
+    json_data=open('new.json').read()
+
+    data = json.loads(json_data)
+    latest= int(data[0]['id'])
+    print 'updated newest'
+    
+    update(latest)
+def update(late):
+    for i in range(0,late):
         a='https://beatsaver.com/api.php?mode=details&id='
         b=str(i)
         c=a+b
         try:
             d=open('details/'+b+'.json','r')
-            print 'b found'
         except:
             print 'need to dl',b
             urllib.urlretrieve(c,'details/'+b+'.json')
         #print i
+    make_all_data(late)
 
 def make_all_data(tot):
+    global mlist
     mlist=[]
+    print 'total' ,tot
     for a in range(1,tot):
+        #print a
         json_data=open('details/'+str(a)+'.json').read()
 
         data = json.loads(json_data)
-        mlist.append(data)
+        #print len(data)
+        if len(data)>0:
+            mlist.append(data[0])
     print len(mlist)
     d=open('alldata.json','w')
     d.write(str(mlist))
@@ -62,7 +166,7 @@ def opendownloads(bb):
 
     for line in bb.readlines():
         line=ast.literal_eval(line)
-        print line,'this is a line' ,len(line)
+        #print line,'this is a line' ,len(line)
         have= line
         return have
     
@@ -80,12 +184,122 @@ def downloads():
             print 'not a dir'
         if isdir==True:
             have.append(int(x))
+            
     d=open('downloads.json','w')
     d.write(str(have))
     return have
+
+def reload_songs():
+    global have
+    have=downloads()
+
+
+
+
+def make_sheet3(mlist):
+    print ''
+    global mlis
+    print mlist
+
+def short(name):
+    if len(name)>15:
+        name=name[:15]+'...'
+        #print 'shorting',name
+    #print name
+    return name
+
+def make_sheet2(mlist):
+    print 'mlist make sheet'
+    global have
+    print have,'have'
+    global listsongs
+    listsongs.delete(0,'end')
+    all_list=[]
+    print all_list
+    for z in range(len(mlist)):
+        dld=False
             
+        #print len(mlist[z])
+        if len(mlist[z])>0:
+
+            time1=mlist[z]['uploadtime']
+            time1=int(time1)
+            time1=datetime.datetime.fromtimestamp(time1).strftime('%m-%d-%Y')
+
+            dd= int(mlist[z]['id'])
+
+            dlde=''
+            for j in range(len(have)):
+                #print type(dd),type(have[j])
+                
+                if dd in have and dld==False:
+                    
+                    dld=True
+                    dlde=emoji.emojize(':heavy_check_mark:',use_aliases=True)
+                    dlde=u'\u2714'
+                    #print 'omg you found a match',dd
+            
+                
+            item=[mlist[z]['id'],mlist[z]['songName'],mlist[z]['songSubName'],mlist[z]['authorName'],mlist[z]['beatsPerMinute'],time1,mlist[z]['uploader'],mlist[z]['downloads'],dlde,mlist[z]['upvotes'],dld,'b','c','d',6,6,6,6]
+            #print dlde
+            #print item
+            #if dld==True:
+            #    item[8]=555
+
+            all_list.append(item)
+    print len(all_list),'all_list'
+    for x in range(len(all_list)):
+        #print all_list[x][0]
+        '''
+        if z%2==1:
+
+            tree.insert('','end',text=full_list[z][0],values=[full_list[z][1],full_list[z][2],full_list[z][3],full_list[z][4],full_list[z][5],full_list[z][6],full_list[z][7],full_list[z][8]],tags = ('oddrow',))
+        if z%2==0:
+
+            tree.insert('','end',text=full_list[z][0],values=[full_list[z][1],full_list[z][2],full_list[z][3],full_list[z][4],full_list[z][5],full_list[z][6],full_list[z][7],full_list[z][8]],tags = ('evenrow',))
+        '''
+        #print listsongs
+        s1=short(all_list[x][1])
+        s2=short(all_list[x][2])
+        s3=short(all_list[x][3])
+
+
+        listsongs.insert(END,all_list[x][0],s1,s2,s3,all_list[x][4],all_list[x][5],all_list[x][6],all_list[x][7],all_list[x][8],all_list[x][9],all_list[x][10],all_list[x][11],all_list[x][12],0,0,0,0,0,0,0,0,0,0,0)
+        #print 'inserting'
+    print len(full_list)
+
+
+
+
+
+
+
+
+        
+
+def clear():
+    
+    listsongs.delete(0,'end')
+    
+def nice(event):
+    print event
+    print 'clicked'
+    event=list(event)
+    for i in range(len(event)):
+        curItem = listsongs.get(event[i])
+        print curItem[0]
+
+
+
 def main():
     global dirpath
+    global mlist
+
+    global listsongs
+    global sortedlist
+    global have
+
+
 
 
     root = Tk()
@@ -93,6 +307,63 @@ def main():
     root.title('BPM')
 
     configfound=False
+    scrollbar = Scrollbar(root)
+
+    listsongs = Tktree.MultiListbox(root, width=1200,height=400,font=("Helvetica", 12),backgroundmode="row",selectmode=EXTENDED,selectcmd=nice,yscrollcommand=scrollbar.set)
+
+
+
+    menubar = Menu(root)
+    filemenu = Menu(menubar, )
+    filemenu.add_command(label="reload", command=lambda: reload_songs())
+    filemenu.add_command(label="Save", command=lambda: make_sheet(mlist))
+    filemenu.add_command(label="About", command=lambda: main())
+    filemenu.add_separator()
+    filemenu.add_command(label="About", command=lambda: main())
+
+    menubar.add_cascade(label="File", menu=filemenu)
+
+    filemenu = Menu(menubar, tearoff=0)
+    filemenu.add_command(label="clear sheet", command=lambda: clear())
+    filemenu.add_command(label="make_sheet2", command=lambda: make_sheet2(mlist))
+    filemenu.add_command(label="check_missing", command=lambda: check_missing())
+
+    menubar.add_cascade(label="File2", menu=filemenu)
+    filemenu = Menu(menubar, tearoff=0)
+
+
+
+    filemenu.add_command(label="Song", command=lambda: sortS(1,'songName'))
+    filemenu.add_command(label="Artist", command=lambda: sortS(2,'songSubName'))
+    filemenu.add_command(label="Mapper", command=lambda: sortS(3,'authorName'))
+    filemenu.add_command(label="BPM", command=lambda: sortS(4,'beatsPerMinute'))
+    filemenu.add_command(label="Rating", command=lambda: sortS(10,'songName'))
+    filemenu.add_command(label="ID", command=lambda: sortS(6,'id'))
+    bpmsort= filemenu.add_command(label="uploader", command=lambda: sortS(9,'uploader'))
+    filemenu.add_command(label="Expert+", command=lambda: sortbad(8))
+
+
+    filemenu.add_separator()
+    filemenu.add_command(label="Easy", command=lambda: sortS(4,'songName'))
+    filemenu.add_command(label="Normal", command=lambda: sortS(5,'songName'))
+    filemenu.add_command(label="Hard", command=lambda: sortS(6,'songName'))
+    filemenu.add_command(label="Expert", command=lambda: sortS(7,'songName'))
+
+    menubar.add_cascade(label="Sort", menu=filemenu)
+    filemenu = Menu(menubar, tearoff=0)
+
+
+    
+    filemenu.add_separator()
+
+    menubar.add_cascade(label="Debug", menu=filemenu)
+
+    
+
+    
+    root.config(menu=menubar)
+
+    
     try:
         zz=open('config.json','r')
         configfound=True
@@ -116,7 +387,7 @@ def main():
         have=downloads()
     if dls==True:
         have=opendownloads(bb)
-    print type(have),'fuckdddddd'
+    print type(have),have,'fuckdddddd'
 
     if configfound:
         for line in zz.readlines():
@@ -126,95 +397,70 @@ def main():
                 getdir()
     if debug>0:
         print dirpath,'dirpath@!!!!!'
-
+    found=False
     try:
         d=open('alldata.json','r')
+        found=True
+        print 'found all data'
+    except:
+        check_missing()
+        print 'making huge list'
+    if found:
+        
+
+
+
+
+
+    
         lenn=0
         for line in d.readlines():
             lenn=lenn+1
             
+            
             mlist=ast.literal_eval(line)
             
-            print len(line),'mlist len'
+            #print len(line),'mlist len'
 
-        print lenn
+        #print lenn
             
         print 'found huge list'
-    except:
-        make_all_data(2621)
-        'making huge list'
+        #print mlist[0]
+    sortedlist=mlist
 
     
-    tree = ttk.Treeview( root, columns=('Dose', 'Modification date',3,4,5,6,7,8))
-    tree.heading('#0', text='BSID')
-    tree.heading('#1', text='songName')
-    tree.heading('#2', text='songSubName')
-    tree.heading('#3', text='suthorName')
-    tree.heading('#4', text='BPM')
-    tree.heading('#5', text='uploadtime')
-    tree.heading('#6', text='uploader')
-    tree.heading('#7', text='downloads')
-    tree.heading('#8', text='Local')
-    #tree.heading('#9', text='upvotes')
-    tree.tag_configure('oddrow', background='white')
-    tree.tag_configure('evenrow', background='gray')
 
-    vsb = Scrollbar(root, orient="vertical", command=tree.yview)
-    #vsb.place(x=30+200+2, y=95, height=200+20)
+
     
 
+    listsongs.config(width=1300,columns=('bsid','Song Name', 'Artist Name','Mapper?!','BPM','Date','uploader','downloads','DLD','P','BPM','Rating','bsid','yes',emoji.emojize(':star:',use_aliases=True)))
+    scrollbar.config(command=listsongs.yview)
 
-    tree.grid(column=0,row=0)
-    vsb.grid(column=1,row=0,sticky='N'+'S')
-    tree.configure(yscrollcommand=vsb.set)
 
-    full_list=[]
-    for z in range(len(mlist)):
-        dld=False
-            
-        #print len(mlist[z])
-        if len(mlist[z])>0:
-            #a= mlist[z][0].keys()
-            #print a[1]
-            #print mlist[z]
-            time1=mlist[z][0]['uploadtime']
-            time1=int(time1)
-            time1=datetime.datetime.fromtimestamp(time1).strftime('%m-%d-%Y')
-            #print time1
-            #tree.insert('','end',text=mlist[z][0]['id'],values=[mlist[z][0]['songName'],mlist[z][0]['songSubName'],mlist[z][0]['authorName'],mlist[z][0]['beatsPerMinute']
-            #                                                    ,time1,mlist[z][0]['uploader'],mlist[z][0]['downloads'],mlist[z][0]['id'],mlist[z][0]['upvotes']])
 
-            dd= int(mlist[z][0]['id'])
-            #print type(dd)
-            #print type(have)
-            for j in range(len(have)):
-                #print type(dd),type(have[j])
-                
-                if dd in have:
-                    
-                    dld=True
-            
-                
-            item=[mlist[z][0]['id'],mlist[z][0]['songName'],mlist[z][0]['songSubName'],mlist[z][0]['authorName'],mlist[z][0]['beatsPerMinute'],time1,mlist[z][0]['uploader'],mlist[z][0]['downloads'],dld,mlist[z][0]['id'],mlist[z][0]['upvotes']]
-            if dld==True:
-                item[8]=True
+    listsongs.grid(row=3,column=3)
 
-            full_list.append(item)
-    for z in range(len(full_list)):
-        if z%2==1:
+    
+    scrollbar.grid(row=3,column=4,sticky='n'+'s')
+    addsongbutton = Button(root, text="Add to Playlist", command="add").grid(row=2,column=2,columnspan=3)
 
-            tree.insert('','end',text=full_list[z][0],values=[full_list[z][1],full_list[z][2],full_list[z][3],full_list[z][4],full_list[z][5],full_list[z][6],full_list[z][7],full_list[z][8]],tags = ('oddrow',))
-        if z%2==0:
 
-            tree.insert('','end',text=full_list[z][0],values=[full_list[z][1],full_list[z][2],full_list[z][3],full_list[z][4],full_list[z][5],full_list[z][6],full_list[z][7],full_list[z][8]],tags = ('evenrow',))
 
+
+    #full_list=[]
+    #print mlist
+    #print have
+    make_sheet2(mlist)
+
+    
 
 
         
     mainloop()
 
-
+#check_missing()
 main()
+
 
 
 #make_all_data(2621)
